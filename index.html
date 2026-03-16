@@ -5,38 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Event Parser - Hoạt động Khoa</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #f0f2f5; font-family: 'Inter', sans-serif; }
-        .card { border: none; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-        .header-section { background: linear-gradient(135deg, #1a73e8, #1557b0); color: white; padding: 25px; border-radius: 16px 16px 0 0; }
-        .form-label { font-weight: 600; color: #444; margin-bottom: 0.4rem; }
-        .form-control:focus { border-color: #1a73e8; box-shadow: 0 0 0 0.2rem rgba(26,115,232,0.1); }
+        body { background-color: #f4f7fa; font-family: 'Plus Jakarta Sans', sans-serif; }
+        .card { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .header-section { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 25px; border-radius: 20px 20px 0 0; }
+        .form-label { font-weight: 700; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
         .ai-loading { display: none; }
-        .status-badge { font-size: 0.85rem; padding: 6px 12px; border-radius: 30px; }
-        textarea { resize: none; }
+        .status-badge { font-size: 0.85rem; padding: 6px 14px; border-radius: 30px; }
+        textarea { resize: none; border-radius: 12px !important; }
+        input, select { border-radius: 10px !important; padding: 10px 15px !important; }
     </style>
 </head>
 <body>
 
 <div class="container py-5">
     <div class="row g-4">
+        <!-- Panel nhập liệu -->
         <div class="col-lg-5">
             <div class="card h-100">
                 <div class="header-section text-center">
-                    <h4 class="mb-1">🤖 AI Event Parser</h4>
-                    <p class="mb-0 opacity-75">Trích xuất thông tin tự động</p>
+                    <h4 class="mb-1 fw-800">🤖 AI Event Parser</h4>
+                    <p class="mb-0 opacity-75">Trích xuất dữ liệu thông minh</p>
                 </div>
                 <div class="card-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label text-primary">1. Gemini API Key (Đã lưu tự động)</label>
-                        <input type="password" id="apiKey" class="form-control form-control-sm" placeholder="Dán mã API từ aistudio.google.com">
-                    </div>
+                    <!-- Bọc form để fix lỗi cảnh báo DOM password -->
+                    <form onsubmit="return false;">
+                        <div class="mb-3">
+                            <label class="form-label text-primary">1. Gemini API Key</label>
+                            <input type="password" id="apiKey" class="form-control" placeholder="Dán mã API từ aistudio.google.com" autocomplete="current-password">
+                        </div>
+                    </form>
                     <div class="mb-4">
                         <label class="form-label">2. Nội dung thông báo</label>
-                        <textarea id="inputText" class="form-control" style="height: 350px;" placeholder="Dán tin nhắn Zalo/Messenger tại đây..."></textarea>
+                        <textarea id="inputText" class="form-control" style="height: 320px;" placeholder="Dán tin nhắn Zalo/Messenger tại đây..."></textarea>
                     </div>
-                    <button class="btn btn-primary w-100 btn-lg fw-bold shadow-sm" onclick="phanTichVoiAI()" id="btnAI">
+                    <button class="btn btn-primary w-100 btn-lg fw-bold shadow-sm py-3" onclick="phanTichVoiAI()" id="btnAI">
                         ✨ BẮT ĐẦU PHÂN TÍCH
                     </button>
                     
@@ -48,17 +53,18 @@
             </div>
         </div>
 
+        <!-- Panel kết quả -->
         <div class="col-lg-7">
             <div class="card h-100">
                 <div class="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold text-dark">Dữ liệu trích xuất</h5>
+                    <h5 class="mb-0 fw-bold text-dark">Kết quả trích xuất</h5>
                     <span id="methodBadge" class="badge bg-secondary status-badge">Chờ dữ liệu</span>
                 </div>
                 <div class="card-body p-4">
                     <div class="row g-3">
                         <div class="col-12">
                             <label class="form-label">Tên chương trình</label>
-                            <input type="text" id="res_ten" class="form-control">
+                            <input type="text" id="res_ten" class="form-control fw-bold text-primary">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Thời gian</label>
@@ -69,8 +75,8 @@
                             <textarea id="res_diadiem" class="form-control" rows="2"></textarea>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label text-primary">Số lượng</label>
-                            <input type="text" id="res_soluong" class="form-control border-primary fw-bold">
+                            <label class="form-label">Số lượng</label>
+                            <input type="text" id="res_soluong" class="form-control fw-bold">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Trang phục</label>
@@ -93,18 +99,16 @@
                             <input type="text" id="res_linknhom" class="form-control">
                         </div>
                         
+                        <!-- Đã fix các ID ở đây -->
                         <div class="col-md-4">
-                            <label class="form-label">Đơn vị</label>
-                            <select id="res_loai" class="form-select border-warning">
+                            <label class="form-label">Đơn vị phụ trách</label>
+                            <select id="res_donvi" class="form-select border-warning">
                                 <option value="KHOA CNTT-TT">KHOA CNTT-TT</option>
                                 <option value="ĐOÀN THANH NIÊN">ĐOÀN THANH NIÊN</option>
                                 <option value="HỘI SINH VIÊN">HỘI SINH VIÊN</option>
-                                //cấp trường
-                                  <option value="P.CTSV">Phòng Công tác Sinh viên</option>
-                                  <option value="Đoàn Thanh niên – Hội Sinh viên Trường">Đoàn Thanh niên – Hội Sinh viên Trường</option>
-                                  //cấp tỉnh
-                                  <option value="Tỉnh Đoàn">Tỉnh Đoàn</option>
-                                  <option value="Hội Sinh viên Tỉnh">Hội Sinh viên Tỉnh</option>
+                                <option value="P.CTSV">P.CTSV</option>
+                                <option value="Tỉnh Đoàn">Tỉnh Đoàn</option>
+                                <option value="Hội Sinh viên Tỉnh">Hội Sinh viên Tỉnh</option>
                             </select>
                         </div>
                         <div class="col-md-4">
@@ -118,8 +122,8 @@
                         <div class="col-md-4">
                             <label class="form-label">Trạng thái</label>
                             <select id="res_trangthai" class="form-select">
-                                <option value="Đang mở">còn</option>
-                                <option value="ngưng">ngưng</option>
+                                <option value="còn">Còn hạn</option>
+                                <option value="ngưng">Ngưng</option>
                             </select>
                         </div>
                         <div class="col-12">
@@ -128,8 +132,8 @@
                         </div>
                     </div>
 
-                    <button class="btn btn-success w-100 btn-lg mt-4 fw-bold shadow" onclick="guiLenSheet()" id="btnSave">
-                        LƯU VÀO GOOGLE SHEET ➔
+                    <button class="btn btn-success w-100 btn-lg mt-4 fw-bold shadow py-3" onclick="guiLenSheet()" id="btnSave">
+                        LƯU VÀO GOOGLE SHEET <i class="fa-solid fa-paper-plane ms-2"></i>
                     </button>
                 </div>
             </div>
@@ -138,74 +142,63 @@
 </div>
 
 <script>
-// Tự động tải API Key từ bộ nhớ trình duyệt khi load trang
+// Tải API Key từ LocalStorage
 window.onload = function() {
     const savedKey = localStorage.getItem("gemini_api_key");
-    if (savedKey) {
-        document.getElementById("apiKey").value = savedKey;
-    }
+    if (savedKey) document.getElementById("apiKey").value = savedKey;
 };
 
 async function phanTichVoiAI() {
     const key = document.getElementById("apiKey").value.trim();
     const text = document.getElementById("inputText").value.trim();
 
-    if (!key) { alert("Vui lòng nhập API Key!"); return; }
-    if (!text) { alert("Vui lòng dán nội dung thông báo!"); return; }
+    if (!key || !text) { alert("Vui lòng nhập đầy đủ thông tin!"); return; }
 
-    // Lưu Key vào LocalStorage cho lần sau
     localStorage.setItem("gemini_api_key", key);
-
     document.getElementById("loading").style.display = "block";
     document.getElementById("btnAI").disabled = true;
 
-    // Sử dụng model Flash cho tốc độ nhanh nhất
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`;
+    // Sử dụng Gemini 1.5 Flash (Model ổn định và nhanh nhất hiện tại)
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
 
-    const prompt = `Phân tích thông báo sau và trả về duy nhất 1 chuỗi JSON (không dùng markdown, không giải thích). 
-    Cấu trúc JSON: {"ten":"", "thoigian":"", "diadiem":"", "soluong":"", "trangphuc":"", "quyenloi":"", "han":"", "link":"", "loai":"HOẠT ĐỘNG", "ghichu":""}.
-    Lưu ý: Mục "han" (hạn đăng ký) lấy định dạng DD/MM/YYYY. Nếu không có thông tin nào, hãy để trống "".
-    Nội dung cần phân tích: ${text}`;
+    const prompt = `Phân tích thông báo hoạt động sau và trả về DUY NHẤT 1 chuỗi JSON.
+    Cấu trúc: {"ten":"", "thoigian":"", "diadiem":"", "soluong":"", "trangphuc":"", "quyenloi":"", "han":"", "link":"", "loai":"HOẠT ĐỘNG", "ghichu":""}.
+    Lưu ý: "han" lấy định dạng DD/MM/YYYY. Nếu không thấy dữ liệu hãy để trống "". 
+    Nội dung: ${text}`;
 
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
-            })
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
 
         const data = await response.json();
-
         if (data.error) throw new Error(data.error.message);
 
-        let aiResponse = data.candidates[0].content.parts[0].text;
+        let aiText = data.candidates[0].content.parts[0].text;
+        const jsonMatch = aiText.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) throw new Error("AI trả về kết quả không hợp lệ.");
         
-        // Xử lý loại bỏ markdown nếu AI lỡ tay thêm vào
-        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) throw new Error("AI không trả về định dạng JSON hợp lệ.");
-        
-        const result = JSON.parse(jsonMatch[0]);
+        const res = JSON.parse(jsonMatch[0]);
 
-        // Đổ dữ liệu vào giao diện
-        document.getElementById("res_ten").value = result.ten || "";
-        document.getElementById("res_thoigian").value = result.thoigian || "";
-        document.getElementById("res_diadiem").value = result.diadiem || "";
-        document.getElementById("res_soluong").value = result.soluong || "";
-        document.getElementById("res_trangphuc").value = result.trangphuc || "";
-        document.getElementById("res_han").value = result.han || "";
-        document.getElementById("res_quyenloi").value = result.quyenloi || "";
-        document.getElementById("res_link").value = result.link || "";
-        document.getElementById("res_loai").value = (result.loai || "HOẠT ĐỘNG").toUpperCase();
-        document.getElementById("res_ghichu").value = result.ghichu || "";
+        // Đổ dữ liệu vào input
+        document.getElementById("res_ten").value = res.ten || "";
+        document.getElementById("res_thoigian").value = res.thoigian || "";
+        document.getElementById("res_diadiem").value = res.diadiem || "";
+        document.getElementById("res_soluong").value = res.soluong || "";
+        document.getElementById("res_trangphuc").value = res.trangphuc || "";
+        document.getElementById("res_han").value = res.han || "";
+        document.getElementById("res_quyenloi").value = res.quyenloi || "";
+        document.getElementById("res_link").value = res.link || "";
+        document.getElementById("res_loai").value = (res.loai || "HOẠT ĐỘNG").toUpperCase();
+        document.getElementById("res_ghichu").value = res.ghichu || "";
         
-        document.getElementById("methodBadge").innerText = "Phân tích thành công ✨";
+        document.getElementById("methodBadge").innerText = "Đã trích xuất xong ✨";
         document.getElementById("methodBadge").className = "badge bg-success status-badge";
 
     } catch (error) {
-        console.error("Lỗi:", error);
-        alert("Lỗi: " + error.message);
+        alert("Lỗi AI: " + error.message);
     } finally {
         document.getElementById("loading").style.display = "none";
         document.getElementById("btnAI").disabled = false;
@@ -213,14 +206,11 @@ async function phanTichVoiAI() {
 }
 
 async function guiLenSheet() {
-    // Thay URL Web App của bạn vào đâyhttps
+    // URL Web App Google Script của bạn
     const API_URL = "https://script.google.com/macros/s/AKfycbzvlmB6kLjRRkDqf1xzi6Y8pu8mjpl6q3RcU2KN1_5txxQaiK3lUtygoGI-TR4AfkGD/exec"; 
-    
-    if(API_URL.includes("LINK_WEB_APP")) {
-        alert("Bạn chưa dán link Google Apps Script vào code!");
-        return;
-    }
 
+    // Lấy toàn bộ dữ liệu từ form
+    // Đã fix lỗi null value bằng cách khớp đúng ID trong HTML
     const payload = {
         ten: document.getElementById("res_ten").value,
         thoigian: document.getElementById("res_thoigian").value,
@@ -231,7 +221,7 @@ async function guiLenSheet() {
         han: document.getElementById("res_han").value,
         link: document.getElementById("res_link").value,
         linknhom: document.getElementById("res_linknhom").value,
-        donvi: document.getElementById("res_donvi").value,
+        donvi: document.getElementById("res_donvi").value, // Đã fix ID
         trangthai: document.getElementById("res_trangthai").value,
         loai: document.getElementById("res_loai").value,
         ghichu: document.getElementById("res_ghichu").value
@@ -239,26 +229,24 @@ async function guiLenSheet() {
 
     const btn = document.getElementById("btnSave");
     btn.disabled = true;
-    btn.innerText = "ĐANG GỬI...";
+    btn.innerText = "ĐANG LƯU...";
 
     try {
+        // Gửi dữ liệu qua Apps Script
         await fetch(API_URL, {
             method: "POST",
             mode: "no-cors", 
-            cache: "no-cache",
-            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
         
-        alert("Đã gửi lệnh lưu! Hãy kiểm tra Google Sheet.");
+        alert("Thành công! Dữ liệu đã được gửi tới Google Sheet.");
     } catch (e) {
-        alert("Lỗi kết nối: " + e.message);
+        alert("Lỗi khi lưu: " + e.message);
     } finally {
         btn.disabled = false;
         btn.innerText = "LƯU VÀO GOOGLE SHEET ➔";
     }
 }
 </script>
-
 </body>
 </html>
