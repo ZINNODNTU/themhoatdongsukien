@@ -117,6 +117,10 @@
             0% { box-shadow: 0 0 0 0px rgba(79, 70, 229, 0.4); }
             100% { box-shadow: 0 0 0 15px rgba(79, 70, 229, 0); }
         }
+        
+        .table-hover tbody tr:hover {
+            background-color: #f8fafc;
+        }
     </style>
 </head>
 <body>
@@ -135,6 +139,51 @@
 </nav>
 
 <div class="container pb-5">
+    <!-- DANH SÁCH DỮ LIỆU -->
+    <div class="glass-card p-4 mb-4">
+        <div class="section-title justify-content-between">
+            <span><i class="fa-solid fa-list-check"></i> Danh sách hoạt động</span>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-primary" onclick="taiDuLieu()">
+                    <i class="fa-solid fa-rotate me-1"></i> Tải lại
+                </button>
+                <select id="filterStatus" class="form-select form-select-sm" style="width: auto;" onchange="locDuLieu()">
+                    <option value="all">Tất cả</option>
+                    <option value="còn" selected>Còn hạn</option>
+                    <option value="ngưng">Ngưng nhận</option>
+                </select>
+            </div>
+        </div>
+        
+        <div id="loadingList" class="text-center py-4" style="display:none;">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="text-muted mt-2">Đang tải dữ liệu...</p>
+        </div>
+        
+        <div id="dataList" class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 40px;">STT</th>
+                        <th>Tên chương trình</th>
+                        <th style="width: 150px;">Thời gian</th>
+                        <th style="width: 120px;">Hạn đăng ký</th>
+                        <th style="width: 100px;">Trạng thái</th>
+                        <th style="width: 100px;">Loại</th>
+                        <th style="width: 120px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            Nhấn "Tải lại" để xem dữ liệu
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <div class="row g-4">
         <!-- CỘT TRÁI: INPUT -->
         <div class="col-lg-4">
@@ -167,8 +216,15 @@
             <div class="glass-card p-4 h-100">
                 <div class="section-title justify-content-between">
                     <span><i class="fa-solid fa-table-list"></i> Dữ liệu trích xuất</span>
-                    <button class="btn btn-sm btn-outline-secondary border-0" onclick="clearForm()">Xóa form</button>
+                    <div>
+                        <button class="btn btn-sm btn-outline-secondary border-0 me-2" onclick="clearForm()">Xóa form</button>
+                        <span id="editingBadge" class="badge bg-warning text-dark" style="display:none;">
+                            <i class="fa-solid fa-pen me-1"></i> Đang sửa
+                        </span>
+                    </div>
                 </div>
+                
+                <input type="hidden" id="editingSTT" value="">
 
                 <div class="row g-3">
                     <div class="col-12">
@@ -257,7 +313,7 @@
 
                 <div class="mt-4 pt-3 border-top">
                     <button class="btn btn-save w-100 shadow-sm" onclick="guiLenSheet()" id="btnSave">
-                        <i class="fa-solid fa-cloud-arrow-up me-2"></i> LƯU VÀO GOOGLE SHEET
+                        <i class="fa-solid fa-cloud-arrow-up me-2"></i> <span id="btnSaveText">LƯU VÀO GOOGLE SHEET</span>
                     </button>
                 </div>
             </div>
@@ -266,11 +322,157 @@
 </div>
 
 <script>
-// Tải API Key từ LocalStorage
+// Biến toàn cục
+let allData = [];
+const SHEET_URL = "https://opensheet.elk.sh/1bIoZD9x1DbtonKqhRqVf_oDGEwyiQTYzlAgG8Bi0vX4/TONGHOP";
+
+// Tải API Key từ LocalStorage và dữ liệu
 window.onload = function() {
     const savedKey = localStorage.getItem("gemini_api_key");
     if (savedKey) document.getElementById("apiKey").value = savedKey;
+    taiDuLieu();
 };
+
+// Tải dữ liệu từ Google Sheet
+async function taiDuLieu() {
+    const loader = document.getElementById("loadingList");
+    const tbody = document.getElementById("tableBody");
+    
+    loader.style.display = "block";
+    tbody.innerHTML = "";
+    
+    try {
+        const response = await fetch(SHEET_URL);
+        allData = await response.json();
+        locDuLieu();
+    } catch (error) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>Lỗi tải dữ liệu: ${error.message}
+        </td></tr>`;
+    } finally {
+        loader.style.display = "none";
+    }
+}
+
+// Lọc và hiển thị dữ liệu
+function locDuLieu() {
+    const filter = document.getElementById("filterStatus").value;
+    const tbody = document.getElementById("tableBody");
+    
+    let filtered = allData;
+    if (filter !== "all") {
+        filtered = allData.filter(item => item["Trạng thái"] === filter);
+    }
+    
+    // Sắp xếp: "còn" lên trước
+    filtered.sort((a, b) => {
+        if (a["Trạng thái"] === "còn" && b["Trạng thái"] !== "còn") return -1;
+        if (a["Trạng thái"] !== "còn" && b["Trạng thái"] === "còn") return 1;
+        return 0;
+    });
+    
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">
+            Không có dữ liệu
+        </td></tr>`;
+        return;
+    }
+    
+    tbody.innerHTML = filtered.map((item, index) => {
+        const statusClass = item["Trạng thái"] === "còn" ? "bg-success" : "bg-secondary";
+        const loaiClass = {
+            "HOẠT ĐỘNG": "bg-primary",
+            "CUỘC THI": "bg-warning text-dark",
+            "WORKSHOP": "bg-info",
+            "TÌNH NGUYỆN": "bg-danger"
+        }[item["Loại"]] || "bg-secondary";
+        
+        return `
+            <tr>
+                <td class="fw-bold text-muted">${item.STT || ""}</td>
+                <td>
+                    <div class="fw-semibold">${item["Tên chương trình"] || ""}</div>
+                    <small class="text-muted">${item["Đơn vị phụ trách"] || ""}</small>
+                </td>
+                <td><small>${item["Thời gian"] || ""}</small></td>
+                <td><small class="text-danger fw-semibold">${item["Hạn đăng ký"] || "-"}</small></td>
+                <td><span class="badge ${statusClass}">${item["Trạng thái"] || ""}</span></td>
+                <td><span class="badge ${loaiClass}">${item["Loại"] || ""}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="suaDuLieu(${index})" title="Sửa">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="xoaDuLieu('${item.STT || ""}')" title="Xóa">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join("");
+}
+
+// Sửa dữ liệu
+function suaDuLieu(index) {
+    const filter = document.getElementById("filterStatus").value;
+    let filtered = allData;
+    if (filter !== "all") {
+        filtered = allData.filter(item => item["Trạng thái"] === filter);
+    }
+    
+    // Sắp xếp giống như trong locDuLieu
+    filtered.sort((a, b) => {
+        if (a["Trạng thái"] === "còn" && b["Trạng thái"] !== "còn") return -1;
+        if (a["Trạng thái"] !== "còn" && b["Trạng thái"] === "còn") return 1;
+        return 0;
+    });
+    
+    const item = filtered[index];
+    if (!item) return;
+    
+    document.getElementById("res_ten").value = item["Tên chương trình"] || "";
+    document.getElementById("res_thoigian").value = item["Thời gian"] || "";
+    document.getElementById("res_diadiem").value = item["Địa điểm"] || "";
+    document.getElementById("res_soluong").value = item["Số lượng"] || "";
+    document.getElementById("res_trangphuc").value = item["Trang phục"] || "";
+    document.getElementById("res_han").value = item["Hạn đăng ký"] || "";
+    document.getElementById("res_quyenloi").value = item["Quyền lợi"] || "";
+    document.getElementById("res_link").value = item["Link đăng ký"] || "";
+    document.getElementById("res_linknhom").value = item["Link nhóm"] || "";
+    document.getElementById("res_donvi").value = item["Đơn vị phụ trách"] || "";
+    document.getElementById("res_trangthai").value = item["Trạng thái"] || "còn";
+    document.getElementById("res_loai").value = item["Loại"] || "HOẠT ĐỘNG";
+    
+    // Đánh dấu đang sửa
+    document.getElementById("editingSTT").value = item.STT || "";
+    document.getElementById("editingBadge").style.display = "inline-block";
+    
+    const btnSaveText = document.getElementById("btnSaveText");
+    if (btnSaveText) {
+        btnSaveText.textContent = "CẬP NHẬT DỮ LIỆU";
+    }
+    
+    // Scroll xuống form
+    document.getElementById("res_ten").scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+// Xóa dữ liệu
+async function xoaDuLieu(stt) {
+    if (!confirm(`Bạn có chắc muốn xóa hoạt động STT ${stt}?`)) return;
+    
+    const API_URL = "https://script.google.com/macros/s/AKfycbzvlmB6kLjRRkDqf1xzi6Y8pu8mjpl6q3RcU2KN1_5txxQaiK3lUtygoGI-TR4AfkGD/exec";
+    
+    try {
+        await fetch(API_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify({ action: "delete", stt: stt })
+        });
+        alert("✅ Đã xóa thành công!");
+        taiDuLieu();
+    } catch (e) {
+        alert("Lỗi khi xóa: " + e.message);
+    }
+}
 
 async function phanTichVoiAI() {
     const key = document.getElementById("apiKey").value.trim();
@@ -350,7 +552,11 @@ async function phanTichVoiAI() {
 async function guiLenSheet() {
     const API_URL = "https://script.google.com/macros/s/AKfycbzvlmB6kLjRRkDqf1xzi6Y8pu8mjpl6q3RcU2KN1_5txxQaiK3lUtygoGI-TR4AfkGD/exec"; 
 
+    const editingSTT = document.getElementById("editingSTT").value;
+    
     const payload = {
+        action: editingSTT ? "update" : "add",
+        stt: editingSTT,
         ten: document.getElementById("res_ten").value,
         thoigian: document.getElementById("res_thoigian").value,
         diadiem: document.getElementById("res_diadiem").value,
@@ -377,7 +583,12 @@ async function guiLenSheet() {
             mode: "no-cors", 
             body: JSON.stringify(payload)
         });
-        alert("🎉 Tuyệt vời! Dữ liệu đã được lưu thành công.");
+        
+        const message = editingSTT ? "✅ Cập nhật thành công!" : "🎉 Tuyệt vời! Dữ liệu đã được lưu thành công.";
+        alert(message);
+        
+        clearForm();
+        taiDuLieu();
     } catch (e) {
         alert("Lỗi kết nối: " + e.message);
     } finally {
@@ -390,6 +601,15 @@ function clearForm() {
     if(confirm("Bạn có chắc muốn xóa sạch kết quả hiện tại?")) {
         const inputs = document.querySelectorAll('#res_ten, #res_thoigian, #res_diadiem, #res_soluong, #res_han, #res_trangphuc, #res_quyenloi, #res_link, #res_linknhom, #res_donvi, #res_ghichu');
         inputs.forEach(i => i.value = "");
+        
+        // Reset trạng thái sửa
+        document.getElementById("editingSTT").value = "";
+        document.getElementById("editingBadge").style.display = "none";
+        
+        const btnSaveText = document.getElementById("btnSaveText");
+        if (btnSaveText) {
+            btnSaveText.textContent = "LƯU VÀO GOOGLE SHEET";
+        }
     }
 }
 </script>
