@@ -1,618 +1,1343 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Event Parser Pro</title>
-    <!-- CSS: Bootstrap 5 & Google Fonts -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --bg-body: #f8fafc;
-            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Quản lý hoạt động - AI Event Parser</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-        body { 
-            background-color: var(--bg-body); 
-            font-family: 'Inter', sans-serif; 
-            color: #1e293b;
-        }
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-2: #4338ca;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --info: #06b6d4;
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --muted: #64748b;
+      --text: #0f172a;
+      --line: #e2e8f0;
+      --soft: #f8fafc;
+      --radius: 18px;
+      --shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+      --shadow-sm: 0 8px 18px rgba(15, 23, 42, 0.06);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
 
-        .navbar-brand { font-weight: 800; letter-spacing: -1px; color: var(--primary) !important; }
-        
-        .glass-card {
-            background: #ffffff;
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            border-radius: 16px;
-            box-shadow: var(--card-shadow);
-            transition: all 0.3s ease;
-        }
+    * { box-sizing: border-box; }
 
-        .section-title {
-            font-weight: 700;
-            font-size: 1.1rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #334155;
-        }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(79, 70, 229, 0.12), transparent 34rem),
+        radial-gradient(circle at top right, rgba(16, 185, 129, 0.10), transparent 32rem),
+        var(--bg);
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--text);
+    }
 
-        .form-label { 
-            font-weight: 600; 
-            color: #64748b; 
-            font-size: 0.8rem; 
-            text-transform: uppercase; 
-            margin-bottom: 6px;
-        }
+    a { color: var(--primary); }
 
-        .form-control, .form-select {
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-            padding: 10px 14px;
-            font-size: 0.95rem;
-            transition: all 0.2s;
-        }
+    .app-shell {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 16px 16px 110px;
+    }
 
-        .form-control:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
-        }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 1030;
+      background: rgba(245, 247, 251, 0.82);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(226, 232, 240, 0.65);
+    }
 
-        .btn-ai {
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-weight: 700;
-            padding: 14px;
-            transition: all 0.3s;
-        }
+    .topbar-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 12px 16px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
 
-        .btn-ai:hover {
-            background: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-            color: white;
-        }
+    .brand {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      min-width: 0;
+    }
 
-        .btn-save {
-            background: #10b981;
-            color: white;
-            border-radius: 10px;
-            padding: 14px;
-            font-weight: 700;
-        }
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), #7c3aed);
+      box-shadow: 0 12px 26px rgba(79, 70, 229, 0.25);
+      flex: 0 0 auto;
+    }
 
-        .btn-save:hover {
-            background: #059669;
-            color: white;
-        }
+    .brand-title {
+      font-size: clamp(1rem, 2.2vw, 1.35rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-        .badge-status {
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.75rem;
-        }
+    .brand-subtitle {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-        .floating-config {
-            background: #f1f5f9;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
+    .status-chip {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #334155;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-weight: 700;
+      font-size: 0.82rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      box-shadow: var(--shadow-sm);
+    }
 
-        /* Loading Animation */
-        .ai-pulse {
-            animation: pulse-animation 2s infinite;
-        }
+    .main-grid {
+      display: grid;
+      grid-template-columns: minmax(360px, 0.9fr) minmax(0, 1.6fr);
+      gap: 16px;
+      align-items: start;
+    }
 
-        @keyframes pulse-animation {
-            0% { box-shadow: 0 0 0 0px rgba(79, 70, 229, 0.4); }
-            100% { box-shadow: 0 0 0 15px rgba(79, 70, 229, 0); }
-        }
-        
-        .table-hover tbody tr:hover {
-            background-color: #f8fafc;
-        }
-    </style>
+    .panel {
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-body { padding: 18px; }
+
+    .panel-head {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: linear-gradient(180deg, #ffffff, #fbfdff);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      color: #1e293b;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .section-title i { color: var(--primary); }
+
+    .helper-text {
+      color: var(--muted);
+      font-size: 0.86rem;
+      margin: 4px 0 0;
+      line-height: 1.45;
+    }
+
+    .field-card {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .form-label {
+      color: #475569;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .form-control,
+    .form-select {
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      padding: 11px 13px;
+      color: var(--text);
+      font-size: 0.95rem;
+      background-color: #fff;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+    }
+
+    textarea.form-control { resize: vertical; }
+
+    .input-textarea { min-height: 230px; }
+
+    .btn {
+      border-radius: 13px;
+      font-weight: 800;
+    }
+
+    .btn-main {
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), #7c3aed);
+      border: 0;
+      box-shadow: 0 14px 26px rgba(79, 70, 229, 0.22);
+    }
+
+    .btn-main:hover,
+    .btn-main:focus {
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary-2), #6d28d9);
+      transform: translateY(-1px);
+    }
+
+    .btn-save {
+      color: #fff;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border: 0;
+      box-shadow: 0 14px 26px rgba(16, 185, 129, 0.22);
+    }
+
+    .btn-save:hover,
+    .btn-save:focus {
+      color: #fff;
+      background: linear-gradient(135deg, #059669, #047857);
+      transform: translateY(-1px);
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) minmax(140px, auto) minmax(140px, auto) auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: var(--shadow-sm);
+      min-width: 0;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .stat-value {
+      font-size: clamp(1.25rem, 3vw, 1.8rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .table-wrap {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: auto;
+      background: #fff;
+    }
+
+    .data-table {
+      min-width: 980px;
+      margin: 0;
+    }
+
+    .data-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--line);
+      padding: 12px;
+    }
+
+    .data-table td {
+      vertical-align: middle;
+      padding: 12px;
+      color: #1e293b;
+    }
+
+    .program-title {
+      max-width: 360px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .badge-soft {
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-weight: 800;
+      font-size: 0.72rem;
+    }
+
+    .badge-active { color: #047857; background: #d1fae5; border: 1px solid #a7f3d0; }
+    .badge-stopped { color: #475569; background: #e2e8f0; border: 1px solid #cbd5e1; }
+    .badge-primary-soft { color: #3730a3; background: #e0e7ff; border: 1px solid #c7d2fe; }
+    .badge-warning-soft { color: #92400e; background: #fef3c7; border: 1px solid #fde68a; }
+    .badge-info-soft { color: #155e75; background: #cffafe; border: 1px solid #a5f3fc; }
+    .badge-danger-soft { color: #991b1b; background: #fee2e2; border: 1px solid #fecaca; }
+
+    .row-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      white-space: nowrap;
+    }
+
+    .empty-state {
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      padding: 34px 16px;
+    }
+
+    .empty-state i {
+      font-size: 2rem;
+      color: #94a3b8;
+      margin-bottom: 12px;
+    }
+
+    .mobile-list { display: none; }
+
+    .program-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 15px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 12px;
+    }
+
+    .program-card-title {
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 1.32;
+      margin-bottom: 8px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .meta-item {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px;
+      min-width: 0;
+    }
+
+    .meta-label {
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+
+    .meta-value {
+      font-size: 0.86rem;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .sticky-save {
+      position: sticky;
+      bottom: 16px;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px;
+      margin-top: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .loading-overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(2px);
+      z-index: 20;
+      place-items: center;
+      text-align: center;
+    }
+
+    .position-relative.is-loading .loading-overlay { display: grid; }
+
+    .toast-container-custom {
+      position: fixed;
+      right: 16px;
+      bottom: calc(16px + var(--safe-bottom));
+      z-index: 2000;
+      width: min(380px, calc(100vw - 32px));
+    }
+
+    .toast-card {
+      display: none;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #fff;
+      box-shadow: var(--shadow);
+      padding: 14px 16px;
+      font-weight: 700;
+    }
+
+    .toast-card.show { display: block; animation: toastIn .18s ease-out; }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .pulse {
+      animation: pulse-animation 1.8s infinite;
+    }
+
+    @keyframes pulse-animation {
+      0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.32); }
+      100% { box-shadow: 0 0 0 18px rgba(79, 70, 229, 0); }
+    }
+
+    .desktop-only { display: inline-flex; }
+
+    @media (max-width: 1199.98px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .input-textarea { min-height: 180px; }
+    }
+
+    @media (max-width: 991.98px) {
+      .toolbar { grid-template-columns: 1fr 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 767.98px) {
+      .topbar-inner { align-items: flex-start; }
+      .brand-icon { width: 40px; height: 40px; }
+      .brand-subtitle { display: none; }
+      .status-chip { padding: 7px 10px; font-size: 0.75rem; }
+      .app-shell { padding: 12px 12px 96px; }
+      .panel-head, .panel-body { padding: 14px; }
+      .toolbar { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .desktop-table { display: none; }
+      .mobile-list { display: block; }
+      .desktop-only { display: none !important; }
+      .sticky-save {
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: calc(12px + var(--safe-bottom));
+        margin: 0;
+      }
+      .meta-grid { grid-template-columns: 1fr; }
+      .row-actions .btn { flex: 1; }
+    }
+
+    @media (max-width: 420px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .topbar-inner { gap: 8px; }
+      .brand-title { max-width: 190px; }
+    }
+  </style>
 </head>
 <body>
-
-<nav class="navbar navbar-light bg-white border-bottom mb-4">
-    <div class="container">
-        <a class="navbar-brand" href="#">
-            <i class="fa-solid fa-brain me-2"></i>EVENT PARSER <span class="text-muted fw-light">v2.0</span>
-        </a>
-        <div class="d-flex align-items-center">
-            <span id="methodBadge" class="badge bg-light text-dark border badge-status">
-                <i class="fa-solid fa-circle-info me-1"></i> Sẵn sàng
-            </span>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-icon"><i class="fa-solid fa-calendar-check"></i></div>
+        <div class="min-w-0">
+          <div class="brand-title">Quản lý hoạt động</div>
+          <div class="brand-subtitle">AI trích xuất thông tin và lưu Google Sheet</div>
         </div>
+      </div>
+      <span id="methodBadge" class="status-chip">
+        <i class="fa-solid fa-circle-info text-primary"></i> Sẵn sàng
+      </span>
     </div>
-</nav>
+  </header>
 
-<div class="container pb-5">
-    <!-- DANH SÁCH DỮ LIỆU -->
-    <div class="glass-card p-4 mb-4">
-        <div class="section-title justify-content-between">
-            <span><i class="fa-solid fa-list-check"></i> Danh sách hoạt động</span>
-            <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-primary" onclick="taiDuLieu()">
-                    <i class="fa-solid fa-rotate me-1"></i> Tải lại
-                </button>
-                <select id="filterStatus" class="form-select form-select-sm" style="width: auto;" onchange="locDuLieu()">
-                    <option value="all">Tất cả</option>
-                    <option value="còn" selected>Còn hạn</option>
-                    <option value="ngưng">Ngưng nhận</option>
-                </select>
-            </div>
+  <main class="app-shell">
+    <section class="panel mb-3">
+      <div class="panel-body">
+        <div class="stats-grid" aria-label="Thống kê nhanh">
+          <div class="stat-card">
+            <div class="stat-label">Tổng hoạt động</div>
+            <div id="statTotal" class="stat-value">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Còn hạn</div>
+            <div id="statActive" class="stat-value text-success">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Ngưng nhận</div>
+            <div id="statStopped" class="stat-value text-secondary">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Hạn gần nhất</div>
+            <div id="statNearest" class="stat-value" style="font-size: 1.08rem;">-</div>
+          </div>
         </div>
-        
-        <div id="loadingList" class="text-center py-4" style="display:none;">
+
+        <div class="toolbar">
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0" style="border-radius: 13px 0 0 13px;"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+            <input id="searchInput" type="search" class="form-control border-start-0" placeholder="Tìm tên, đơn vị, địa điểm..." oninput="locDuLieu()">
+          </div>
+
+          <select id="filterStatus" class="form-select" onchange="locDuLieu()" aria-label="Lọc trạng thái">
+            <option value="all">Tất cả trạng thái</option>
+            <option value="còn" selected>Còn hạn</option>
+            <option value="ngưng">Ngưng nhận</option>
+          </select>
+
+          <select id="filterType" class="form-select" onchange="locDuLieu()" aria-label="Lọc phân loại">
+            <option value="all">Tất cả loại</option>
+            <option value="HOẠT ĐỘNG">Hoạt động</option>
+            <option value="CUỘC THI">Cuộc thi</option>
+            <option value="WORKSHOP">Workshop</option>
+            <option value="TÌNH NGUYỆN">Tình nguyện</option>
+          </select>
+
+          <button class="btn btn-outline-primary" onclick="taiDuLieu()" id="btnReload">
+            <i class="fa-solid fa-rotate me-1"></i><span class="desktop-only">Tải lại</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="main-grid">
+      <div class="panel position-relative" id="listPanel">
+        <div class="loading-overlay">
+          <div>
             <div class="spinner-border text-primary" role="status"></div>
-            <p class="text-muted mt-2">Đang tải dữ liệu...</p>
+            <div class="fw-bold mt-2">Đang tải dữ liệu...</div>
+            <div class="small text-muted">Vui lòng kiểm tra kết nối nếu tải quá lâu</div>
+          </div>
         </div>
-        
-        <div id="dataList" class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width: 40px;">STT</th>
-                        <th>Tên chương trình</th>
-                        <th style="width: 150px;">Thời gian</th>
-                        <th style="width: 120px;">Hạn đăng ký</th>
-                        <th style="width: 100px;">Trạng thái</th>
-                        <th style="width: 100px;">Loại</th>
-                        <th style="width: 120px;">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <tr>
-                        <td colspan="7" class="text-center text-muted py-4">
-                            Nhấn "Tải lại" để xem dữ liệu
-                        </td>
-                    </tr>
-                </tbody>
+
+        <div class="panel-head">
+          <div>
+            <h2 class="section-title"><i class="fa-solid fa-list-check"></i> Danh sách</h2>
+            <p class="helper-text">Ưu tiên hiển thị hoạt động còn hạn và gần ngày hiện tại.</p>
+          </div>
+          <span id="resultCount" class="badge-soft badge-primary-soft">0 mục</span>
+        </div>
+
+        <div class="panel-body">
+          <div class="desktop-table table-wrap">
+            <table class="table table-hover data-table align-middle">
+              <thead>
+                <tr>
+                  <th style="width: 70px;">STT</th>
+                  <th>Chương trình</th>
+                  <th style="width: 180px;">Thời gian</th>
+                  <th style="width: 150px;">Hạn đăng ký</th>
+                  <th style="width: 130px;">Trạng thái</th>
+                  <th style="width: 130px;">Loại</th>
+                  <th style="width: 128px;" class="text-end">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody">
+                <tr>
+                  <td colspan="7">
+                    <div class="empty-state">
+                      <i class="fa-regular fa-folder-open"></i>
+                      <div class="fw-bold">Chưa có dữ liệu</div>
+                      <div>Nhấn “Tải lại” để lấy danh sách từ Google Sheet.</div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
             </table>
+          </div>
+
+          <div id="mobileList" class="mobile-list"></div>
         </div>
-    </div>
+      </div>
 
-    <div class="row g-4">
-        <!-- CỘT TRÁI: INPUT -->
-        <div class="col-lg-4">
-            <div class="glass-card p-4">
-                <div class="floating-config">
-                    <label class="form-label text-primary"><i class="fa-solid fa-key me-1"></i> Gemini API Key</label>
-                    <input type="password" id="apiKey" class="form-control form-control-sm" placeholder="Dán API key vào đây..." autocomplete="current-password">
-                </div>
+      <div class="panel" id="formPanel">
+        <div class="panel-head">
+          <div>
+            <h2 class="section-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Nhập & trích xuất</h2>
+            <p class="helper-text">Dán thông báo, bấm phân tích, kiểm tra lại rồi lưu.</p>
+          </div>
+          <span id="editingBadge" class="badge-soft badge-warning-soft" style="display:none;">
+            <i class="fa-solid fa-pen me-1"></i>Đang sửa
+          </span>
+        </div>
 
-                <div class="section-title">
-                    <i class="fa-solid fa-pen-to-square"></i> Nội dung gốc
+        <div class="panel-body">
+          <input type="hidden" id="editingSTT" value="">
+
+          <div class="row g-3 mb-3">
+            <div class="col-lg-5">
+              <div class="field-card h-100">
+                <label class="form-label text-primary"><i class="fa-solid fa-key me-1"></i> Gemini API Key</label>
+                <div class="input-group">
+                  <input type="password" id="apiKey" class="form-control" placeholder="Dán API key vào đây" autocomplete="current-password">
+                  <button class="btn btn-outline-secondary" type="button" onclick="toggleApiKey()" title="Ẩn/hiện API key">
+                    <i id="apiEye" class="fa-regular fa-eye"></i>
+                  </button>
                 </div>
-                
-                <textarea id="inputText" class="form-control mb-3" style="height: 400px;" 
-                    placeholder="Dán tin nhắn từ Zalo, Messenger, Email..."></textarea>
-                
-                <button class="btn btn-ai w-100" onclick="phanTichVoiAI()" id="btnAI">
-                    <i class="fa-solid fa-wand-magic-sparkles me-2"></i> PHÂN TÍCH THÔNG MINH
+                <div class="helper-text">Key được lưu trên trình duyệt hiện tại để lần sau không cần nhập lại.</div>
+              </div>
+            </div>
+
+            <div class="col-lg-7">
+              <label class="form-label">Nội dung gốc</label>
+              <textarea id="inputText" class="form-control input-textarea" placeholder="Dán tin nhắn từ Zalo, Messenger, Email hoặc văn bản thông báo..."></textarea>
+              <div class="d-grid d-sm-flex gap-2 mt-2">
+                <button class="btn btn-main flex-fill" onclick="phanTichVoiAI()" id="btnAI">
+                  <i class="fa-solid fa-brain me-2"></i>Phân tích thông minh
                 </button>
-
-                <div id="loading" class="text-center mt-3" style="display:none;">
-                    <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
-                    <span class="ms-2 text-muted small">AI đang đọc dữ liệu...</span>
-                </div>
+                <button class="btn btn-outline-secondary" onclick="xoaNoiDungGoc()">
+                  <i class="fa-solid fa-eraser me-1"></i>Xóa nội dung
+                </button>
+              </div>
+              <div id="loadingAI" class="helper-text mt-2" style="display:none;">
+                <span class="spinner-border spinner-border-sm text-primary me-2"></span>AI đang đọc dữ liệu...
+              </div>
             </div>
-        </div>
+          </div>
 
-        <!-- CỘT PHẢI: RESULT -->
-        <div class="col-lg-8">
-            <div class="glass-card p-4 h-100">
-                <div class="section-title justify-content-between">
-                    <span><i class="fa-solid fa-table-list"></i> Dữ liệu trích xuất</span>
-                    <div>
-                        <button class="btn btn-sm btn-outline-secondary border-0 me-2" onclick="clearForm()">Xóa form</button>
-                        <span id="editingBadge" class="badge bg-warning text-dark" style="display:none;">
-                            <i class="fa-solid fa-pen me-1"></i> Đang sửa
-                        </span>
-                    </div>
-                </div>
-                
-                <input type="hidden" id="editingSTT" value="">
+          <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+            <h3 class="section-title"><i class="fa-solid fa-table-list"></i> Dữ liệu trích xuất</h3>
+            <button class="btn btn-sm btn-outline-secondary" onclick="clearForm()">
+              <i class="fa-solid fa-rotate-left me-1"></i>Xóa form
+            </button>
+          </div>
 
-                <div class="row g-3">
-                    <div class="col-12">
-                        <label class="form-label">Tên chương trình / Hoạt động</label>
-                        <input type="text" id="res_ten" class="form-control fw-bold text-primary">
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">Thời gian tổ chức</label>
-                        <textarea id="res_thoigian" class="form-control" rows="2" placeholder="Ngày, giờ..."></textarea>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">Địa điểm</label>
-                        <textarea id="res_diadiem" class="form-control" rows="2" placeholder="Trực tiếp hoặc Online..."></textarea>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">Số lượng</label>
-                        <input type="text" id="res_soluong" class="form-control" placeholder="Ví dụ: 100 SV">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">Hạn đăng ký</label>
-                        <input type="text" id="res_han" class="form-control border-danger-subtle" placeholder="DD/MM/YYYY">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">Trang phục</label>
-                        <input type="text" id="res_trangphuc" class="form-control">
-                    </div>
-
-                    <div class="col-12">
-                        <label class="form-label">Quyền lợi (CTXH, quà tặng...)</label>
-                        <input type="text" id="res_quyenloi" class="form-control">
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label text-success">Link đăng ký (Form)</label>
-                        <input type="text" id="res_link" class="form-control border-success-subtle">
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">Link nhóm hỗ trợ (Zalo/FB)</label>
-                        <input type="text" id="res_linknhom" class="form-control">
-                    </div>
-
-                    <!-- ĐƠN VỊ PHỤ TRÁCH: NHẬP HOẶC CHỌN -->
-                    <div class="col-md-4">
-                        <label class="form-label">Đơn vị phụ trách</label>
-                        <input list="donvi-list" id="res_donvi" class="form-control" placeholder="Chọn hoặc tự nhập...">
-                        <datalist id="donvi-list">
-                            <option value="KHOA CNTT-TT">
-                            <option value="ĐOÀN THANH NIÊN">
-                            <option value="HỘI SINH VIÊN">
-                            <option value="LIÊN CHI ĐOÀN">
-                            <option value="P.CTSV">
-                            <option value="Tỉnh Đoàn">
-                            <option value="Hội Sinh viên Tỉnh">
-                        </datalist>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">Phân loại</label>
-                        <select id="res_loai" class="form-select">
-                            <option value="HOẠT ĐỘNG">HOẠT ĐỘNG</option>
-                            <option value="CUỘC THI">CUỘC THI</option>
-                            <option value="WORKSHOP">WORKSHOP</option>
-                            <option value="TÌNH NGUYỆN">TÌNH NGUYỆN</option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">Trạng thái</label>
-                        <select id="res_trangthai" class="form-select">
-                            <option value="còn">Còn hạn đăng ký</option>
-                            <option value="ngưng">Ngưng nhận</option>
-                        </select>
-                    </div>
-
-                    <div class="col-12">
-                        <label class="form-label">Ghi chú quan trọng</label>
-                        <textarea id="res_ghichu" class="form-control" rows="2"></textarea>
-                    </div>
-                </div>
-
-                <div class="mt-4 pt-3 border-top">
-                    <button class="btn btn-save w-100 shadow-sm" onclick="guiLenSheet()" id="btnSave">
-                        <i class="fa-solid fa-cloud-arrow-up me-2"></i> <span id="btnSaveText">LƯU VÀO GOOGLE SHEET</span>
-                    </button>
-                </div>
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Tên chương trình / Hoạt động</label>
+              <input type="text" id="res_ten" class="form-control fw-bold text-primary" placeholder="Ví dụ: Chiến dịch Mùa hè xanh 2026">
             </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Thời gian tổ chức</label>
+              <textarea id="res_thoigian" class="form-control" rows="2" placeholder="Ngày, giờ tổ chức"></textarea>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Địa điểm</label>
+              <textarea id="res_diadiem" class="form-control" rows="2" placeholder="Địa điểm trực tiếp hoặc online"></textarea>
+            </div>
+
+            <div class="col-sm-6 col-lg-4">
+              <label class="form-label">Số lượng</label>
+              <input type="text" id="res_soluong" class="form-control" placeholder="Ví dụ: 100 SV">
+            </div>
+
+            <div class="col-sm-6 col-lg-4">
+              <label class="form-label">Hạn đăng ký</label>
+              <input type="text" id="res_han" class="form-control border-danger-subtle" placeholder="DD/MM/YYYY">
+            </div>
+
+            <div class="col-sm-6 col-lg-4">
+              <label class="form-label">Trang phục</label>
+              <input type="text" id="res_trangphuc" class="form-control" placeholder="Áo đoàn, áo khoa...">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Quyền lợi</label>
+              <input type="text" id="res_quyenloi" class="form-control" placeholder="CTXH, giấy chứng nhận, quà tặng...">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label text-success">Link đăng ký</label>
+              <input type="url" id="res_link" class="form-control border-success-subtle" placeholder="https://forms.gle/...">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Link nhóm hỗ trợ</label>
+              <input type="url" id="res_linknhom" class="form-control" placeholder="Zalo/Facebook/Telegram...">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Đơn vị phụ trách</label>
+              <input list="donvi-list" id="res_donvi" class="form-control" placeholder="Chọn hoặc tự nhập">
+              <datalist id="donvi-list">
+                <option value="KHOA CNTT-TT"></option>
+                <option value="ĐOÀN THANH NIÊN"></option>
+                <option value="HỘI SINH VIÊN"></option>
+                <option value="LIÊN CHI ĐOÀN"></option>
+                <option value="P.CTSV"></option>
+                <option value="Tỉnh Đoàn"></option>
+                <option value="Hội Sinh viên Tỉnh"></option>
+              </datalist>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Phân loại</label>
+              <select id="res_loai" class="form-select">
+                <option value="HOẠT ĐỘNG">HOẠT ĐỘNG</option>
+                <option value="CUỘC THI">CUỘC THI</option>
+                <option value="WORKSHOP">WORKSHOP</option>
+                <option value="TÌNH NGUYỆN">TÌNH NGUYỆN</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Trạng thái</label>
+              <select id="res_trangthai" class="form-select">
+                <option value="còn">Còn hạn đăng ký</option>
+                <option value="ngưng">Ngưng nhận</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Ghi chú quan trọng</label>
+              <textarea id="res_ghichu" class="form-control" rows="2" placeholder="Lưu ý khi tham gia, yêu cầu chuẩn bị..."></textarea>
+            </div>
+          </div>
+
+          <div class="sticky-save">
+            <button class="btn btn-save w-100 py-3" onclick="guiLenSheet()" id="btnSave">
+              <i class="fa-solid fa-cloud-arrow-up me-2"></i><span id="btnSaveText">Lưu vào Google Sheet</span>
+            </button>
+          </div>
         </div>
-    </div>
-</div>
+      </div>
+    </section>
+  </main>
 
-<script>
-// Biến toàn cục
-let allData = [];
-const SHEET_URL = "https://opensheet.elk.sh/1bIoZD9x1DbtonKqhRqVf_oDGEwyiQTYzlAgG8Bi0vX4/TONGHOP";
+  <div class="toast-container-custom">
+    <div id="toastCard" class="toast-card" role="status" aria-live="polite"></div>
+  </div>
 
-// Tải API Key từ LocalStorage và dữ liệu
-window.onload = function() {
-    const savedKey = localStorage.getItem("gemini_api_key");
-    if (savedKey) document.getElementById("apiKey").value = savedKey;
-    taiDuLieu();
-};
+  <script>
+    // =========================
+    // CẤU HÌNH
+    // =========================
+    let allData = [];
+    let currentFilteredData = [];
 
-// Tải dữ liệu từ Google Sheet
-async function taiDuLieu() {
-    const loader = document.getElementById("loadingList");
-    const tbody = document.getElementById("tableBody");
-    
-    loader.style.display = "block";
-    tbody.innerHTML = "";
-    
-    try {
-        const response = await fetch(SHEET_URL);
-        allData = await response.json();
-        locDuLieu();
-    } catch (error) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">
-            <i class="fa-solid fa-triangle-exclamation me-2"></i>Lỗi tải dữ liệu: ${error.message}
-        </td></tr>`;
-    } finally {
-        loader.style.display = "none";
-    }
-}
-
-// Lọc và hiển thị dữ liệu
-function locDuLieu() {
-    const filter = document.getElementById("filterStatus").value;
-    const tbody = document.getElementById("tableBody");
-    
-    let filtered = allData;
-    if (filter !== "all") {
-        filtered = allData.filter(item => item["Trạng thái"] === filter);
-    }
-    
-    // Sắp xếp: "còn" lên trước
-    filtered.sort((a, b) => {
-        if (a["Trạng thái"] === "còn" && b["Trạng thái"] !== "còn") return -1;
-        if (a["Trạng thái"] !== "còn" && b["Trạng thái"] === "còn") return 1;
-        return 0;
-    });
-    
-    if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">
-            Không có dữ liệu
-        </td></tr>`;
-        return;
-    }
-    
-    tbody.innerHTML = filtered.map((item, index) => {
-        const statusClass = item["Trạng thái"] === "còn" ? "bg-success" : "bg-secondary";
-        const loaiClass = {
-            "HOẠT ĐỘNG": "bg-primary",
-            "CUỘC THI": "bg-warning text-dark",
-            "WORKSHOP": "bg-info",
-            "TÌNH NGUYỆN": "bg-danger"
-        }[item["Loại"]] || "bg-secondary";
-        
-        return `
-            <tr>
-                <td class="fw-bold text-muted">${item.STT || ""}</td>
-                <td>
-                    <div class="fw-semibold">${item["Tên chương trình"] || ""}</div>
-                    <small class="text-muted">${item["Đơn vị phụ trách"] || ""}</small>
-                </td>
-                <td><small>${item["Thời gian"] || ""}</small></td>
-                <td><small class="text-danger fw-semibold">${item["Hạn đăng ký"] || "-"}</small></td>
-                <td><span class="badge ${statusClass}">${item["Trạng thái"] || ""}</span></td>
-                <td><span class="badge ${loaiClass}">${item["Loại"] || ""}</span></td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary me-1" onclick="suaDuLieu(${index})" title="Sửa">
-                        <i class="fa-solid fa-pen"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="xoaDuLieu('${item.STT || ""}')" title="Xóa">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
-    }).join("");
-}
-
-// Sửa dữ liệu
-function suaDuLieu(index) {
-    const filter = document.getElementById("filterStatus").value;
-    let filtered = allData;
-    if (filter !== "all") {
-        filtered = allData.filter(item => item["Trạng thái"] === filter);
-    }
-    
-    // Sắp xếp giống như trong locDuLieu
-    filtered.sort((a, b) => {
-        if (a["Trạng thái"] === "còn" && b["Trạng thái"] !== "còn") return -1;
-        if (a["Trạng thái"] !== "còn" && b["Trạng thái"] === "còn") return 1;
-        return 0;
-    });
-    
-    const item = filtered[index];
-    if (!item) return;
-    
-    document.getElementById("res_ten").value = item["Tên chương trình"] || "";
-    document.getElementById("res_thoigian").value = item["Thời gian"] || "";
-    document.getElementById("res_diadiem").value = item["Địa điểm"] || "";
-    document.getElementById("res_soluong").value = item["Số lượng"] || "";
-    document.getElementById("res_trangphuc").value = item["Trang phục"] || "";
-    document.getElementById("res_han").value = item["Hạn đăng ký"] || "";
-    document.getElementById("res_quyenloi").value = item["Quyền lợi"] || "";
-    document.getElementById("res_link").value = item["Link đăng ký"] || "";
-    document.getElementById("res_linknhom").value = item["Link nhóm"] || "";
-    document.getElementById("res_donvi").value = item["Đơn vị phụ trách"] || "";
-    document.getElementById("res_trangthai").value = item["Trạng thái"] || "còn";
-    document.getElementById("res_loai").value = item["Loại"] || "HOẠT ĐỘNG";
-    
-    // Đánh dấu đang sửa
-    document.getElementById("editingSTT").value = item.STT || "";
-    document.getElementById("editingBadge").style.display = "inline-block";
-    
-    const btnSaveText = document.getElementById("btnSaveText");
-    if (btnSaveText) {
-        btnSaveText.textContent = "CẬP NHẬT DỮ LIỆU";
-    }
-    
-    // Scroll xuống form
-    document.getElementById("res_ten").scrollIntoView({ behavior: "smooth", block: "center" });
-}
-
-// Xóa dữ liệu
-async function xoaDuLieu(stt) {
-    if (!confirm(`Bạn có chắc muốn xóa hoạt động STT ${stt}?`)) return;
-    
+    const SHEET_URL = "https://opensheet.elk.sh/1bIoZD9x1DbtonKqhRqVf_oDGEwyiQTYzlAgG8Bi0vX4/TONGHOP";
     const API_URL = "https://script.google.com/macros/s/AKfycbzvlmB6kLjRRkDqf1xzi6Y8pu8mjpl6q3RcU2KN1_5txxQaiK3lUtygoGI-TR4AfkGD/exec";
-    
-    try {
-        await fetch(API_URL, {
-            method: "POST",
-            mode: "no-cors",
-            body: JSON.stringify({ action: "delete", stt: stt })
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedKey = localStorage.getItem("gemini_api_key");
+      if (savedKey) document.getElementById("apiKey").value = savedKey;
+      taiDuLieu();
+    });
+
+    // =========================
+    // TIỆN ÍCH UI
+    // =========================
+    function $(id) {
+      return document.getElementById(id);
+    }
+
+    function showToast(message, type = "info") {
+      const toast = $("toastCard");
+      const icon = {
+        success: "fa-circle-check text-success",
+        error: "fa-triangle-exclamation text-danger",
+        warning: "fa-circle-exclamation text-warning",
+        info: "fa-circle-info text-primary"
+      }[type] || "fa-circle-info text-primary";
+
+      toast.innerHTML = `<i class="fa-solid ${icon} me-2"></i>${escapeHtml(message)}`;
+      toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.remove("show"), 3200);
+    }
+
+    function setStatus(message, type = "info") {
+      const badge = $("methodBadge");
+      const config = {
+        success: ["fa-circle-check text-success", "Thành công"],
+        error: ["fa-triangle-exclamation text-danger", "Có lỗi"],
+        loading: ["fa-spinner fa-spin text-primary", "Đang xử lý"],
+        info: ["fa-circle-info text-primary", "Sẵn sàng"]
+      }[type] || ["fa-circle-info text-primary", "Sẵn sàng"];
+      badge.innerHTML = `<i class="fa-solid ${config[0]}"></i>${escapeHtml(message || config[1])}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function normalizeText(value) {
+      return String(value || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d")
+        .trim();
+    }
+
+    function normalizeLoai(value) {
+      const raw = String(value || "").trim();
+      const key = normalizeText(raw).replace(/[^a-z0-9]+/g, " ").trim();
+      const map = {
+        "hoat dong": "HOẠT ĐỘNG",
+        "cuoc thi": "CUỘC THI",
+        "workshop": "WORKSHOP",
+        "tinh nguyen": "TÌNH NGUYỆN",
+        "tn": "TÌNH NGUYỆN"
+      };
+      return map[key] || raw.toUpperCase() || "HOẠT ĐỘNG";
+    }
+
+    function toggleApiKey() {
+      const input = $("apiKey");
+      const icon = $("apiEye");
+      input.type = input.type === "password" ? "text" : "password";
+      icon.className = input.type === "password" ? "fa-regular fa-eye" : "fa-regular fa-eye-slash";
+    }
+
+    function xoaNoiDungGoc() {
+      $("inputText").value = "";
+      showToast("Đã xóa nội dung gốc.", "info");
+    }
+
+    // =========================
+    // XỬ LÝ NGÀY VÀ SẮP XẾP
+    // =========================
+    function parseDateLike(text) {
+      const raw = String(text || "");
+      if (!raw.trim()) return null;
+
+      // Hỗ trợ DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY
+      let match = raw.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+      if (match) {
+        let day = Number(match[1]);
+        let month = Number(match[2]);
+        let year = Number(match[3]);
+        if (year < 100) year += 2000;
+        const date = new Date(year, month - 1, day);
+        if (!Number.isNaN(date.getTime())) return date;
+      }
+
+      // Hỗ trợ YYYY-MM-DD
+      match = raw.match(/(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
+      if (match) {
+        const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+        if (!Number.isNaN(date.getTime())) return date;
+      }
+
+      return null;
+    }
+
+    function getSortDate(item) {
+      return parseDateLike(item["Hạn đăng ký"]) || parseDateLike(item["Thời gian"]);
+    }
+
+    function formatDate(date) {
+      if (!date) return "-";
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      return `${day}/${month}/${date.getFullYear()}`;
+    }
+
+    function sapXepGanHienTai(data) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      return [...data].sort((a, b) => {
+        const aActive = a["Trạng thái"] === "còn" ? 0 : 1;
+        const bActive = b["Trạng thái"] === "còn" ? 0 : 1;
+        if (aActive !== bActive) return aActive - bActive;
+
+        const da = getSortDate(a);
+        const db = getSortDate(b);
+        if (!da && !db) return 0;
+        if (!da) return 1;
+        if (!db) return -1;
+
+        const aPast = da < today ? 1 : 0;
+        const bPast = db < today ? 1 : 0;
+        if (aPast !== bPast) return aPast - bPast;
+
+        return Math.abs(da - today) - Math.abs(db - today);
+      });
+    }
+
+    // =========================
+    // LOAD, LỌC, HIỂN THỊ
+    // =========================
+    async function taiDuLieu() {
+      const panel = $("listPanel");
+      const reload = $("btnReload");
+      panel.classList.add("is-loading");
+      reload.disabled = true;
+      setStatus("Đang tải", "loading");
+
+      try {
+        const response = await fetch(`${SHEET_URL}?t=${Date.now()}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        allData = Array.isArray(data) ? data : [];
+        locDuLieu();
+        setStatus("Đã tải xong", "success");
+      } catch (error) {
+        allData = [];
+        renderList([]);
+        updateStats([]);
+        setStatus("Lỗi tải dữ liệu", "error");
+        showToast(`Lỗi tải dữ liệu: ${error.message}`, "error");
+      } finally {
+        panel.classList.remove("is-loading");
+        reload.disabled = false;
+      }
+    }
+
+    function locDuLieu() {
+      const status = $("filterStatus").value;
+      const type = $("filterType").value;
+      const keyword = normalizeText($("searchInput").value);
+
+      let filtered = [...allData];
+
+      if (status !== "all") {
+        filtered = filtered.filter(item => String(item["Trạng thái"] || "").trim() === status);
+      }
+
+      if (type !== "all") {
+        filtered = filtered.filter(item => normalizeLoai(item["Loại"]) === type);
+      }
+
+      if (keyword) {
+        filtered = filtered.filter(item => {
+          const haystack = normalizeText([
+            item["Tên chương trình"],
+            item["Đơn vị phụ trách"],
+            item["Địa điểm"],
+            item["Thời gian"],
+            item["Loại"],
+            item["Trạng thái"]
+          ].join(" "));
+          return haystack.includes(keyword);
         });
-        alert("✅ Đã xóa thành công!");
-        taiDuLieu();
-    } catch (e) {
-        alert("Lỗi khi xóa: " + e.message);
-    }
-}
+      }
 
-async function phanTichVoiAI() {
-    const key = document.getElementById("apiKey").value.trim();
-    const text = document.getElementById("inputText").value.trim();
-
-    if (!key || !text) { 
-        alert("Vui lòng nhập API Key và Nội dung thông báo!"); 
-        return; 
+      currentFilteredData = sapXepGanHienTai(filtered);
+      renderList(currentFilteredData);
+      updateStats(allData);
     }
 
-    localStorage.setItem("gemini_api_key", key);
-    
-    const btn = document.getElementById("btnAI");
-    const loader = document.getElementById("loading");
-    
-    btn.disabled = true;
-    btn.classList.add("ai-pulse");
-    loader.style.display = "block";
+    function updateStats(data) {
+      const total = data.length;
+      const active = data.filter(item => item["Trạng thái"] === "còn").length;
+      const stopped = data.filter(item => item["Trạng thái"] === "ngưng").length;
 
-    // Sử dụng Model 1.5 Flash cho tốc độ nhanh và chính xác
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const nearest = data
+        .filter(item => item["Trạng thái"] === "còn")
+        .map(item => parseDateLike(item["Hạn đăng ký"]))
+        .filter(date => date && date >= today)
+        .sort((a, b) => a - b)[0];
 
-    const prompt = `Bạn là trợ lý hành chính. Hãy trích xuất dữ liệu từ văn bản sau sang định dạng JSON. 
-    Lưu ý: 
-    - "han" (hạn đăng ký) định dạng DD/MM/YYYY. 
-    - "loai" chọn 1 trong (HOẠT ĐỘNG, CUỘC THI, WORKSHOP, TÌNH NGUYỆN).
-    - Nếu không thấy trường nào hãy để trống "".
-    - Trả về DUY NHẤT 1 khối JSON, không kèm giải thích.
-    
-    Cấu trúc: {"ten":"", "thoigian":"", "diadiem":"", "soluong":"", "trangphuc":"", "quyenloi":"", "han":"", "link":"", "loai":"", "ghichu":"", "donvi":""}
-    
-    Nội dung: ${text}`;
+      $("statTotal").textContent = total;
+      $("statActive").textContent = active;
+      $("statStopped").textContent = stopped;
+      $("statNearest").textContent = nearest ? formatDate(nearest) : "-";
+    }
 
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    function statusBadge(value) {
+      return String(value || "").trim() === "còn"
+        ? `<span class="badge-soft badge-active">Còn hạn</span>`
+        : `<span class="badge-soft badge-stopped">Ngưng nhận</span>`;
+    }
+
+    function typeBadge(value) {
+      const val = normalizeLoai(value || "HOẠT ĐỘNG");
+      const cls = {
+        "HOẠT ĐỘNG": "badge-primary-soft",
+        "CUỘC THI": "badge-warning-soft",
+        "WORKSHOP": "badge-info-soft",
+        "TÌNH NGUYỆN": "badge-danger-soft"
+      }[val] || "badge-stopped";
+      return `<span class="badge-soft ${cls}">${escapeHtml(val)}</span>`;
+    }
+
+    function renderList(data) {
+      const tbody = $("tableBody");
+      const mobile = $("mobileList");
+      $("resultCount").textContent = `${data.length} mục`;
+
+      if (!data.length) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7">
+              <div class="empty-state">
+                <i class="fa-regular fa-folder-open"></i>
+                <div class="fw-bold">Không có dữ liệu phù hợp</div>
+                <div>Thử đổi bộ lọc hoặc bấm tải lại.</div>
+              </div>
+            </td>
+          </tr>`;
+        mobile.innerHTML = `
+          <div class="empty-state panel">
+            <i class="fa-regular fa-folder-open"></i>
+            <div class="fw-bold">Không có dữ liệu phù hợp</div>
+            <div>Thử đổi bộ lọc hoặc bấm tải lại.</div>
+          </div>`;
+        return;
+      }
+
+      tbody.innerHTML = data.map((item, index) => `
+        <tr>
+          <td class="fw-bold text-muted">${escapeHtml(item.STT || index + 1)}</td>
+          <td>
+            <div class="program-title line-clamp-2">${escapeHtml(item["Tên chương trình"] || "Chưa có tên")}</div>
+            <div class="small text-muted mt-1">${escapeHtml(item["Đơn vị phụ trách"] || "Chưa có đơn vị")}</div>
+          </td>
+          <td><div class="small line-clamp-2">${escapeHtml(item["Thời gian"] || "-")}</div></td>
+          <td><span class="fw-bold text-danger">${escapeHtml(item["Hạn đăng ký"] || "-")}</span></td>
+          <td>${statusBadge(item["Trạng thái"])}</td>
+          <td>${typeBadge(item["Loại"])}</td>
+          <td>
+            <div class="row-actions">
+              <button class="btn btn-sm btn-outline-primary" onclick="suaDuLieu(${index})" title="Sửa hoạt động">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger" onclick="xoaDuLieu('${escapeHtml(item.STT || "")}')" title="Xóa hoạt động">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>`).join("");
+
+      mobile.innerHTML = data.map((item, index) => `
+        <article class="program-card">
+          <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+            <div class="program-card-title">${escapeHtml(item["Tên chương trình"] || "Chưa có tên")}</div>
+            <div class="fw-bold text-muted">#${escapeHtml(item.STT || index + 1)}</div>
+          </div>
+          <div class="d-flex gap-2 flex-wrap">
+            ${statusBadge(item["Trạng thái"])}
+            ${typeBadge(item["Loại"])}
+          </div>
+          <div class="meta-grid">
+            <div class="meta-item">
+              <div class="meta-label">Thời gian</div>
+              <div class="meta-value">${escapeHtml(item["Thời gian"] || "-")}</div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Hạn đăng ký</div>
+              <div class="meta-value text-danger">${escapeHtml(item["Hạn đăng ký"] || "-")}</div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Đơn vị</div>
+              <div class="meta-value">${escapeHtml(item["Đơn vị phụ trách"] || "-")}</div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Địa điểm</div>
+              <div class="meta-value">${escapeHtml(item["Địa điểm"] || "-")}</div>
+            </div>
+          </div>
+          <div class="row-actions mt-3">
+            <button class="btn btn-outline-primary" onclick="suaDuLieu(${index})">
+              <i class="fa-solid fa-pen me-1"></i>Sửa
+            </button>
+            <button class="btn btn-outline-danger" onclick="xoaDuLieu('${escapeHtml(item.STT || "")}')">
+              <i class="fa-solid fa-trash me-1"></i>Xóa
+            </button>
+          </div>
+        </article>`).join("");
+    }
+
+    // =========================
+    // SỬA / XÓA / FORM
+    // =========================
+    function suaDuLieu(index) {
+      const item = currentFilteredData[index];
+      if (!item) return;
+
+      $("res_ten").value = item["Tên chương trình"] || "";
+      $("res_thoigian").value = item["Thời gian"] || "";
+      $("res_diadiem").value = item["Địa điểm"] || "";
+      $("res_soluong").value = item["Số lượng"] || "";
+      $("res_trangphuc").value = item["Trang phục"] || "";
+      $("res_han").value = item["Hạn đăng ký"] || "";
+      $("res_quyenloi").value = item["Quyền lợi"] || "";
+      $("res_link").value = item["Link đăng ký"] || "";
+      $("res_linknhom").value = item["Link nhóm"] || "";
+      $("res_donvi").value = item["Đơn vị phụ trách"] || "";
+      $("res_trangthai").value = item["Trạng thái"] || "còn";
+      $("res_loai").value = normalizeLoai(item["Loại"] || "HOẠT ĐỘNG");
+      $("res_ghichu").value = item["Ghi chú"] || item["Ghi chú quan trọng"] || "";
+
+      $("editingSTT").value = item.STT || "";
+      $("editingBadge").style.display = "inline-flex";
+      $("btnSaveText").textContent = "Cập nhật dữ liệu";
+
+      $("formPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+      showToast(`Đang sửa hoạt động STT ${item.STT || ""}.`, "info");
+    }
+
+    async function xoaDuLieu(stt) {
+      if (!stt) {
+        showToast("Không tìm thấy STT để xóa.", "warning");
+        return;
+      }
+
+      if (!confirm(`Bạn có chắc muốn xóa hoạt động STT ${stt}?`)) return;
+
+      setStatus("Đang xóa", "loading");
+      try {
+        await fetch(API_URL, {
+          method: "POST",
+          mode: "no-cors",
+          body: JSON.stringify({ action: "delete", stt })
+        });
+        showToast("Đã gửi yêu cầu xóa thành công.", "success");
+        await taiDuLieu();
+      } catch (e) {
+        setStatus("Lỗi xóa", "error");
+        showToast(`Lỗi khi xóa: ${e.message}`, "error");
+      }
+    }
+
+    function clearForm() {
+      const hasData = [
+        "res_ten", "res_thoigian", "res_diadiem", "res_soluong", "res_han",
+        "res_trangphuc", "res_quyenloi", "res_link", "res_linknhom", "res_donvi", "res_ghichu"
+      ].some(id => $(id).value.trim());
+
+      if (hasData && !confirm("Bạn có chắc muốn xóa sạch form hiện tại?")) return;
+
+      [
+        "res_ten", "res_thoigian", "res_diadiem", "res_soluong", "res_han",
+        "res_trangphuc", "res_quyenloi", "res_link", "res_linknhom", "res_donvi", "res_ghichu"
+      ].forEach(id => $(id).value = "");
+
+      $("res_loai").value = "HOẠT ĐỘNG";
+      $("res_trangthai").value = "còn";
+      $("editingSTT").value = "";
+      $("editingBadge").style.display = "none";
+      $("btnSaveText").textContent = "Lưu vào Google Sheet";
+      showToast("Đã làm mới form.", "info");
+    }
+
+    // =========================
+    // AI PARSER
+    // =========================
+    async function phanTichVoiAI() {
+      const key = $("apiKey").value.trim();
+      const text = $("inputText").value.trim();
+
+      if (!key) {
+        showToast("Vui lòng nhập Gemini API Key.", "warning");
+        $("apiKey").focus();
+        return;
+      }
+
+      if (!text) {
+        showToast("Vui lòng dán nội dung thông báo cần phân tích.", "warning");
+        $("inputText").focus();
+        return;
+      }
+
+      localStorage.setItem("gemini_api_key", key);
+
+      const btn = $("btnAI");
+      const loader = $("loadingAI");
+      btn.disabled = true;
+      btn.classList.add("pulse");
+      loader.style.display = "block";
+      setStatus("AI đang phân tích", "loading");
+
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(key)}`;
+      const prompt = `Bạn là trợ lý hành chính. Hãy trích xuất dữ liệu từ văn bản sau sang định dạng JSON.
+Yêu cầu:
+- han: hạn đăng ký, ưu tiên định dạng DD/MM/YYYY nếu có ngày cụ thể.
+- loai: chọn đúng 1 trong các giá trị: HOẠT ĐỘNG, CUỘC THI, WORKSHOP, TÌNH NGUYỆN. Nếu nội dung liên quan hoạt động thiện nguyện, mùa hè xanh, tiếp sức mùa thi, công tác xã hội, hiến máu, hỗ trợ cộng đồng thì ưu tiên TÌNH NGUYỆN.
+- Nếu không thấy trường nào hãy để trống "".
+- Trả về duy nhất 1 khối JSON hợp lệ, không Markdown, không giải thích.
+
+Cấu trúc JSON:
+{"ten":"", "thoigian":"", "diadiem":"", "soluong":"", "trangphuc":"", "quyenloi":"", "han":"", "link":"", "linknhom":"", "loai":"", "ghichu":"", "donvi":""}
+
+Nội dung cần phân tích:
+${text}`;
+
+      try {
+        const response = await fetch(geminiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
 
         const data = await response.json();
         if (data.error) throw new Error(data.error.message);
 
-        let aiText = data.candidates[0].content.parts[0].text;
+        const aiText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
         const jsonMatch = aiText.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) throw new Error("AI không thể tạo cấu trúc JSON.");
-        
+        if (!jsonMatch) throw new Error("AI không trả về JSON hợp lệ.");
+
         const res = JSON.parse(jsonMatch[0]);
-
-        // Đổ dữ liệu vào input
-        document.getElementById("res_ten").value = res.ten || "";
-        document.getElementById("res_thoigian").value = res.thoigian || "";
-        document.getElementById("res_diadiem").value = res.diadiem || "";
-        document.getElementById("res_soluong").value = res.soluong || "";
-        document.getElementById("res_trangphuc").value = res.trangphuc || "";
-        document.getElementById("res_han").value = res.han || "";
-        document.getElementById("res_quyenloi").value = res.quyenloi || "";
-        document.getElementById("res_link").value = res.link || "";
-        document.getElementById("res_loai").value = (res.loai || "HOẠT ĐỘNG").toUpperCase();
-        document.getElementById("res_ghichu").value = res.ghichu || "";
-        document.getElementById("res_donvi").value = res.donvi || "";
-        
-        const badge = document.getElementById("methodBadge");
-        badge.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Thành công';
-        badge.className = "badge bg-success-subtle text-success border border-success badge-status";
-
-    } catch (error) {
-        alert("Lỗi AI: " + error.message);
+        fillFormFromAI(res);
+        setStatus("Phân tích xong", "success");
+        showToast("AI đã trích xuất dữ liệu. Hãy kiểm tra lại trước khi lưu.", "success");
+      } catch (error) {
         console.error(error);
-    } finally {
+        setStatus("Lỗi AI", "error");
+        showToast(`Lỗi AI: ${error.message}`, "error");
+      } finally {
         loader.style.display = "none";
         btn.disabled = false;
-        btn.classList.remove("ai-pulse");
+        btn.classList.remove("pulse");
+      }
     }
-}
 
-async function guiLenSheet() {
-    const API_URL = "https://script.google.com/macros/s/AKfycbzvlmB6kLjRRkDqf1xzi6Y8pu8mjpl6q3RcU2KN1_5txxQaiK3lUtygoGI-TR4AfkGD/exec"; 
+    function fillFormFromAI(res) {
+      $("res_ten").value = res.ten || "";
+      $("res_thoigian").value = res.thoigian || "";
+      $("res_diadiem").value = res.diadiem || "";
+      $("res_soluong").value = res.soluong || "";
+      $("res_trangphuc").value = res.trangphuc || "";
+      $("res_han").value = res.han || "";
+      $("res_quyenloi").value = res.quyenloi || "";
+      $("res_link").value = res.link || "";
+      $("res_linknhom").value = res.linknhom || "";
+      $("res_loai").value = normalizeLoai(res.loai || "HOẠT ĐỘNG");
+      $("res_ghichu").value = res.ghichu || "";
+      $("res_donvi").value = res.donvi || "";
+      $("formPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
 
-    const editingSTT = document.getElementById("editingSTT").value;
-    
-    const payload = {
+    // =========================
+    // LƯU SHEET
+    // =========================
+    async function guiLenSheet() {
+      const editingSTT = $("editingSTT").value;
+      const ten = $("res_ten").value.trim();
+
+      if (!ten) {
+        showToast("Tên chương trình không được để trống.", "warning");
+        $("res_ten").focus();
+        return;
+      }
+
+      const payload = {
         action: editingSTT ? "update" : "add",
         stt: editingSTT,
-        ten: document.getElementById("res_ten").value,
-        thoigian: document.getElementById("res_thoigian").value,
-        diadiem: document.getElementById("res_diadiem").value,
-        trangphuc: document.getElementById("res_trangphuc").value,
-        soluong: document.getElementById("res_soluong").value,
-        quyenloi: document.getElementById("res_quyenloi").value,
-        han: document.getElementById("res_han").value,
-        link: document.getElementById("res_link").value,
-        linknhom: document.getElementById("res_linknhom").value,
-        donvi: document.getElementById("res_donvi").value, 
-        trangthai: document.getElementById("res_trangthai").value,
-        loai: document.getElementById("res_loai").value,
-        ghichu: document.getElementById("res_ghichu").value
-    };
+        ten,
+        thoigian: $("res_thoigian").value.trim(),
+        diadiem: $("res_diadiem").value.trim(),
+        trangphuc: $("res_trangphuc").value.trim(),
+        soluong: $("res_soluong").value.trim(),
+        quyenloi: $("res_quyenloi").value.trim(),
+        han: $("res_han").value.trim(),
+        link: $("res_link").value.trim(),
+        linknhom: $("res_linknhom").value.trim(),
+        donvi: $("res_donvi").value.trim(),
+        trangthai: $("res_trangthai").value,
+        loai: $("res_loai").value,
+        ghichu: $("res_ghichu").value.trim()
+      };
 
-    const btn = document.getElementById("btnSave");
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> ĐANG LƯU...';
+      const btn = $("btnSave");
+      const original = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang lưu...';
+      setStatus("Đang lưu", "loading");
 
-    try {
+      try {
         await fetch(API_URL, {
-            method: "POST",
-            mode: "no-cors", 
-            body: JSON.stringify(payload)
+          method: "POST",
+          mode: "no-cors",
+          body: JSON.stringify(payload)
         });
-        
-        const message = editingSTT ? "✅ Cập nhật thành công!" : "🎉 Tuyệt vời! Dữ liệu đã được lưu thành công.";
-        alert(message);
-        
-        clearForm();
-        taiDuLieu();
-    } catch (e) {
-        alert("Lỗi kết nối: " + e.message);
-    } finally {
+
+        showToast(editingSTT ? "Đã gửi yêu cầu cập nhật dữ liệu." : "Đã gửi yêu cầu lưu dữ liệu.", "success");
+        clearFormAfterSave();
+        await taiDuLieu();
+      } catch (e) {
+        setStatus("Lỗi lưu", "error");
+        showToast(`Lỗi kết nối: ${e.message}`, "error");
+      } finally {
         btn.disabled = false;
-        btn.innerHTML = originalText;
+        btn.innerHTML = original;
+      }
     }
-}
 
-function clearForm() {
-    if(confirm("Bạn có chắc muốn xóa sạch kết quả hiện tại?")) {
-        const inputs = document.querySelectorAll('#res_ten, #res_thoigian, #res_diadiem, #res_soluong, #res_han, #res_trangphuc, #res_quyenloi, #res_link, #res_linknhom, #res_donvi, #res_ghichu');
-        inputs.forEach(i => i.value = "");
-        
-        // Reset trạng thái sửa
-        document.getElementById("editingSTT").value = "";
-        document.getElementById("editingBadge").style.display = "none";
-        
-        const btnSaveText = document.getElementById("btnSaveText");
-        if (btnSaveText) {
-            btnSaveText.textContent = "LƯU VÀO GOOGLE SHEET";
-        }
+    function clearFormAfterSave() {
+      [
+        "res_ten", "res_thoigian", "res_diadiem", "res_soluong", "res_han",
+        "res_trangphuc", "res_quyenloi", "res_link", "res_linknhom", "res_donvi", "res_ghichu"
+      ].forEach(id => $(id).value = "");
+      $("res_loai").value = "HOẠT ĐỘNG";
+      $("res_trangthai").value = "còn";
+      $("editingSTT").value = "";
+      $("editingBadge").style.display = "none";
+      $("btnSaveText").textContent = "Lưu vào Google Sheet";
     }
-}
-</script>
-
+  </script>
 </body>
 </html>
