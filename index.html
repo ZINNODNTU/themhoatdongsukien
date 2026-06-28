@@ -1276,6 +1276,7 @@
         allData = Array.isArray(data) ? data.map(normalizeRecord) : [];
         locDuLieu();
         setStatus("Đã tải dữ liệu", "success");
+        return true;
       } catch (error) {
         allData = [];
         currentFilteredData = [];
@@ -1283,6 +1284,7 @@
         updateStats([]);
         setStatus("Lỗi tải dữ liệu", "error");
         showToast(error.message || "Không tải được dữ liệu.", "error");
+        return false;
       } finally {
         panel.classList.remove("is-loading");
         reload.disabled = false;
@@ -1496,11 +1498,20 @@
       showToast(`Đang sửa hoạt động STT ${item.STT || ""}.`, "info");
     }
 
+    function makeRequestId() {
+      if (window.crypto && crypto.randomUUID) {
+        return crypto.randomUUID();
+      }
+
+      return `req_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    }
+
     function getFormPayload() {
       const editingSTT = $("editingSTT").value.trim();
 
       return {
         action: editingSTT ? "update" : "add",
+        requestId: makeRequestId(),
         stt: editingSTT,
         ten: $("res_ten").value.trim(),
         thoigian: $("res_thoigian").value.trim(),
@@ -1584,19 +1595,28 @@
       const apiUrl = getApiUrl();
       if (!apiUrl) throw new Error("Chưa cấu hình Apps Script Web App URL.");
 
+      const action = String(payload.action || "").trim().toLowerCase();
+      const isWriteAction = ["add", "update", "delete"].includes(action);
+      const isPingAction = action === "ping";
+
+      if (!navigator.onLine) {
+        throw new Error("Thiết bị đang offline. Vui lòng kiểm tra mạng rồi thử lại.");
+      }
+
       try {
         const response = await fetch(apiUrl, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify(payload),
-          redirect: "follow"
+          redirect: "follow",
+          cache: "no-store"
         });
 
         const text = await response.text();
         let result;
 
         try {
-          result = JSON.parse(text);
+          result = text ? JSON.parse(text) : {};
         } catch (err) {
           result = {
             ok: response.ok,
@@ -1608,14 +1628,22 @@
           throw new Error(result.message || `Apps Script HTTP ${response.status}`);
         }
 
-        return result;
+        return {
+          ...result,
+          uncertain: false
+        };
       } catch (err) {
-        if (shouldFallbackToFormPost(err)) {
-          await postViaNoCors(payload);
+        if ((isWriteAction || isPingAction) && shouldTreatAsSentButUnreadable(err)) {
+          console.warn("Đã gửi request nhưng trình duyệt không đọc được phản hồi Apps Script:", err);
+
           return {
             ok: true,
-            fallback: true,
-            message: "Đã gửi yêu cầu qua chế độ tương thích. Bấm Tải lại sau vài giây để cập nhật danh sách."
+            uncertain: true,
+            action,
+            requestId: payload.requestId || "",
+            message: isPingAction
+              ? "Đã gửi yêu cầu test, nhưng trình duyệt không đọc được phản hồi. Nếu lưu dữ liệu vẫn thành công thì có thể bỏ qua cảnh báo này."
+              : "Đã gửi dữ liệu lên Apps Script. Trình duyệt không đọc được phản hồi nên hệ thống sẽ tải lại danh sách để kiểm tra. Vui lòng không bấm lưu lại lần nữa."
           };
         }
 
@@ -1623,23 +1651,62 @@
       }
     }
 
-    function shouldFallbackToFormPost(err) {
+    function shouldTreatAsSentButUnreadable(err) {
       const msg = String(err && err.message ? err.message : err).toLowerCase();
-      return msg.includes("failed to fetch") || msg.includes("cors") || msg.includes("networkerror") || msg.includes("load failed");
+
+      return (
+        msg.includes("failed to fetch") ||
+        msg.includes("cors") ||
+        msg.includes("networkerror") ||
+        msg.includes("load failed") ||
+        msg.includes("access-control-allow-origin") ||
+        msg.includes("script.googleusercontent.com")
+      );
     }
 
-    async function postViaNoCors(payload) {
-      const apiUrl = getApiUrl();
-      if (!apiUrl) throw new Error("Chưa cấu hình Apps Script Web App URL.");
+    function normalizeCompare(value) {
+      return String(value || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
 
-      // Chế độ tương thích cho trường hợp mở HTML bằng file:// hoặc bị CORS.
-      // no-cors không đọc được phản hồi, nhưng vẫn gửi được dữ liệu đến Apps Script.
-      await fetch(apiUrl, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload)
-      });
+    function isSameSavedRecord(item, payload) {
+      if (!item || !payload) return false;
+
+      const checks = [
+        [item["Tên chương trình"], payload.ten],
+        [item["Thời gian"], payload.thoigian],
+        [item["Địa điểm"], payload.diadiem],
+        [item["Hạn đăng ký"], payload.han],
+        [item["Link đăng ký"], payload.link]
+      ];
+
+      return checks.every(([a, b]) => normalizeCompare(a) === normalizeCompare(b));
+    }
+
+    function verifyWriteResult(payload) {
+      const action = String(payload.action || "").trim().toLowerCase();
+
+      if (action === "add") {
+        return allData.some(item => isSameSavedRecord(item, payload));
+      }
+
+      if (action === "update") {
+        return allData.some(item =>
+          String(item.STT || "").trim() === String(payload.stt || "").trim() &&
+          normalizeCompare(item["Tên chương trình"]) === normalizeCompare(payload.ten)
+        );
+      }
+
+      if (action === "delete") {
+        return !allData.some(item => String(item.STT || "").trim() === String(payload.stt || "").trim());
+      }
+
+      return false;
     }
 
     async function testAppsScript() {
@@ -1648,9 +1715,20 @@
       setStatus("Đang test Apps Script", "loading");
 
       try {
-        const result = await postToAppsScript({ action: "ping", source: "ui-test", time: new Date().toISOString() });
-        setStatus("Kết nối OK", "success");
-        showToast(result.message || "Kết nối Apps Script thành công.", "success");
+        const result = await postToAppsScript({
+          action: "ping",
+          requestId: makeRequestId(),
+          source: "ui-test",
+          time: new Date().toISOString()
+        });
+
+        if (result.uncertain) {
+          setStatus("Đã gửi test", "warning");
+          showToast(result.message, "warning");
+        } else {
+          setStatus("Kết nối OK", "success");
+          showToast(result.message || "Kết nối Apps Script thành công.", "success");
+        }
       } catch (err) {
         setStatus("Lỗi Apps Script", "error");
         showToast(err.message || "Không kết nối được Apps Script.", "error");
@@ -1662,18 +1740,43 @@
     async function guiLenSheet() {
       const btn = $("btnSave");
       const payload = getFormPayload();
+      const backupKey = "qlhd_last_save_payload";
 
       try {
         validatePayload(payload);
+        sessionStorage.setItem(backupKey, JSON.stringify(payload));
 
         setButtonLoading(btn, true, '<span class="spinner-border spinner-border-sm me-2"></span>Đang lưu...');
         setStatus("Đang lưu", "loading");
 
         const result = await postToAppsScript(payload);
-        showToast(result.message || (payload.action === "update" ? "Cập nhật thành công." : "Lưu thành công."), "success");
+
+        if (result.uncertain) {
+          showToast(result.message, "warning");
+          setStatus("Đã gửi, đang kiểm tra", "warning");
+
+          await delay(2200);
+          await taiDuLieu();
+
+          if (verifyWriteResult(payload)) {
+            clearFormAfterSave();
+            sessionStorage.removeItem(backupKey);
+            setStatus(payload.action === "update" ? "Cập nhật thành công" : "Lưu thành công", "success");
+            showToast(payload.action === "update" ? "Đã cập nhật dữ liệu thành công." : "Đã lưu dữ liệu thành công.", "success");
+          } else {
+            setStatus("Đã gửi, chờ Sheet cập nhật", "warning");
+            showToast("Đã gửi yêu cầu lưu. Nếu danh sách chưa hiện ngay do OpenSheet cập nhật chậm, bấm Tải lại sau vài giây. Form vẫn được giữ an toàn trong phiên trình duyệt.", "warning");
+          }
+
+          return;
+        }
 
         clearFormAfterSave();
-        await delay(result.fallback ? 1500 : 700);
+        sessionStorage.removeItem(backupKey);
+        showToast(result.message || (payload.action === "update" ? "Cập nhật thành công." : "Lưu thành công."), "success");
+        setStatus(payload.action === "update" ? "Cập nhật thành công" : "Lưu thành công", "success");
+
+        await delay(700);
         await taiDuLieu();
       } catch (err) {
         setStatus("Lỗi lưu", "error");
@@ -1694,12 +1797,32 @@
       setStatus("Đang xóa", "loading");
 
       try {
-        const result = await postToAppsScript({ action: "delete", stt });
+        const payload = { action: "delete", requestId: makeRequestId(), stt };
+        const result = await postToAppsScript(payload);
+
+        if (result.uncertain) {
+          showToast(result.message, "warning");
+          await delay(2200);
+          await taiDuLieu();
+
+          if (verifyWriteResult(payload)) {
+            if ($("editingSTT").value === String(stt)) clearFormAfterSave();
+            setStatus("Xóa thành công", "success");
+            showToast(`Đã xóa STT ${stt}.`, "success");
+          } else {
+            setStatus("Đã gửi lệnh xóa", "warning");
+            showToast("Đã gửi lệnh xóa. Nếu danh sách chưa cập nhật ngay, bấm Tải lại sau vài giây.", "warning");
+          }
+
+          return;
+        }
+
         showToast(result.message || `Đã xóa STT ${stt}.`, "success");
+        setStatus("Xóa thành công", "success");
 
         if ($("editingSTT").value === String(stt)) clearFormAfterSave();
 
-        await delay(result.fallback ? 1500 : 700);
+        await delay(700);
         await taiDuLieu();
       } catch (err) {
         setStatus("Lỗi xóa", "error");
